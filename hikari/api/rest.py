@@ -1030,7 +1030,6 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
     async def create_message(
         self,
         channel: snowflakes.SnowflakeishOr[channels_.TextChannel],
-        # TODO: more concise typing
         content: undefined.UndefinedOr[typing.Any] = undefined.UNDEFINED,
         *,
         embed: undefined.UndefinedOr[embeds_.Embed] = undefined.UNDEFINED,
@@ -1241,7 +1240,6 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
         self,
         channel: snowflakes.SnowflakeishOr[channels_.TextChannel],
         message: snowflakes.SnowflakeishOr[messages_.PartialMessage],
-        # TODO: more concise typing
         content: undefined.UndefinedOr[typing.Any] = undefined.UNDEFINED,
         *,
         embed: undefined.UndefinedNoneOr[embeds_.Embed] = undefined.UNDEFINED,
@@ -2101,10 +2099,8 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
     @abc.abstractmethod
     async def execute_webhook(
         self,
-        # TODO: update docs
         webhook: snowflakes.SnowflakeishOr[webhooks.ExecutableWebhook],
         token: str,
-        # TODO: more concise typing
         content: undefined.UndefinedOr[typing.Any] = undefined.UNDEFINED,
         *,
         username: undefined.UndefinedOr[str] = undefined.UNDEFINED,
@@ -2126,7 +2122,7 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
 
         Parameters
         ----------
-        webhook : hikari.snowflakes.SnowflakeishOr[hikari.webhooks.Webhook]
+        webhook : hikari.snowflakes.SnowflakeishOr[hikari.webhooks.ExecutableWebhook]
             The webhook to execute. This may be the object
             or the ID of an existing webhook.
         token: builtins.str
@@ -2257,7 +2253,7 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
     @abc.abstractmethod
     async def fetch_webhook_message(
         self,
-        webhook: snowflakes.SnowflakeishOr[webhooks.Webhook],
+        webhook: snowflakes.SnowflakeishOr[webhooks.ExecutableWebhook],
         token: str,
         message: snowflakes.SnowflakeishOr[messages_.PartialMessage],
     ) -> messages_.Message:
@@ -2265,7 +2261,7 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
 
         Parameters
         ----------
-        webhook : hikari.snowflakes.SnowflakeishOr[hikari.webhooks.Webhook]
+        webhook : hikari.snowflakes.SnowflakeishOr[hikari.webhooks.ExecutableWebhook]
             The webhook to execute. This may be the object
             or the ID of an existing webhook.
         token: builtins.str
@@ -2303,11 +2299,9 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
     @abc.abstractmethod
     async def edit_webhook_message(
         self,
-        # TODO: update docs
         webhook: snowflakes.SnowflakeishOr[webhooks.ExecutableWebhook],
         token: str,
         message: snowflakes.SnowflakeishOr[messages_.Message],
-        # TODO: more concise typing
         content: undefined.UndefinedNoneOr[typing.Any] = undefined.UNDEFINED,
         *,
         embed: undefined.UndefinedNoneOr[embeds_.Embed] = undefined.UNDEFINED,
@@ -2327,7 +2321,7 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
 
         Parameters
         ----------
-        webhook : hikari.snowflakes.SnowflakeishOr[hikari.webhooks.Webhook]
+        webhook : hikari.snowflakes.SnowflakeishOr[hikari.webhooks.ExecutableWebhook]
             The webhook to execute. This may be the object
             or the ID of an existing webhook.
         token: builtins.str
@@ -2468,7 +2462,6 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
     @abc.abstractmethod
     async def delete_webhook_message(
         self,
-        # TODO: update docs
         webhook: snowflakes.SnowflakeishOr[webhooks.ExecutableWebhook],
         token: str,
         message: snowflakes.SnowflakeishOr[messages_.Message],
@@ -2477,7 +2470,7 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
 
         Parameters
         ----------
-        webhook : hikari.snowflakes.SnowflakeishOr[hikari.webhooks.Webhook]
+        webhook : hikari.snowflakes.SnowflakeishOr[hikari.webhooks.ExecutableWebhook]
             The webhook to execute. This may be the object
             or the ID of an existing webhook.
         token: builtins.str
@@ -5935,6 +5928,7 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
     @abc.abstractmethod
     async def fetch_application_command(
         self,
+        application: snowflakes.SnowflakeishOr[guilds.PartialApplication],
         command: snowflakes.SnowflakeishOr[interactions.Command],
         guild: undefined.UndefinedOr[snowflakes.SnowflakeishOr[guilds.PartialGuild]] = undefined.UNDEFINED,
     ) -> interactions.Command:
@@ -5943,6 +5937,7 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
     @abc.abstractmethod
     async def fetch_application_commands(
         self,
+        application: snowflakes.SnowflakeishOr[guilds.PartialApplication],
         guild: undefined.UndefinedOr[snowflakes.SnowflakeishOr[guilds.PartialGuild]] = undefined.UNDEFINED,
     ) -> typing.Sequence[interactions.Command]:
         """Fetch the commands set for an application.
@@ -5966,6 +5961,7 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
     @abc.abstractmethod
     async def create_application_command(
         self,
+        application: snowflakes.SnowflakeishOr[guilds.PartialApplication],
         name: str,
         description: str,
         guild: undefined.UndefinedOr[snowflakes.SnowflakeishOr[guilds.PartialGuild]] = undefined.UNDEFINED,
@@ -5999,6 +5995,7 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
     @abc.abstractmethod
     async def set_application_commands(
         self,
+        application: snowflakes.SnowflakeishOr[guilds.PartialApplication],
         commands: typing.Sequence[special_endpoints.CommandBuilder],
         guild: undefined.UndefinedOr[snowflakes.SnowflakeishOr[guilds.PartialGuild]] = undefined.UNDEFINED,
     ) -> typing.Sequence[interactions.Command]:
@@ -6007,6 +6004,7 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
     @abc.abstractmethod
     async def edit_application_command(
         self,
+        application: snowflakes.SnowflakeishOr[guilds.PartialApplication],
         command: snowflakes.SnowflakeishOr[interactions.Command],
         guild: undefined.UndefinedOr[snowflakes.SnowflakeishOr[guilds.PartialGuild]] = undefined.UNDEFINED,
         *,
@@ -6046,6 +6044,7 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
     @abc.abstractmethod
     async def delete_application_command(
         self,
+        application: snowflakes.SnowflakeishOr[guilds.PartialApplication],
         command: snowflakes.SnowflakeishOr[interactions.Command],
         guild: undefined.UndefinedOr[snowflakes.SnowflakeishOr[guilds.PartialGuild]] = undefined.UNDEFINED,
     ) -> None:
@@ -6067,7 +6066,9 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
     # This endpoint is a TODO on Discord's end and hasn't actually been implemented yet.
     # See https://github.com/discord/discord-api-docs/issues/2490
     @abc.abstractmethod
-    async def fetch_command_response(self, token: str, /) -> messages_.Message:
+    async def fetch_command_response(
+        self, application: snowflakes.SnowflakeishOr[guilds.PartialApplication], token: str, /
+    ) -> messages_.Message:
         raise NotImplementedError
 
     @abc.abstractmethod  # TODO: will this endpoint ever return a message?
@@ -6076,7 +6077,6 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
         interaction: snowflakes.SnowflakeishOr[interactions.PartialInteraction],
         token: str,
         response_type: interactions.InteractionResponseType,
-        # TODO: more concise type
         content: undefined.UndefinedOr[typing.Any] = undefined.UNDEFINED,
         *,
         tts: undefined.UndefinedOr[bool] = undefined.UNDEFINED,
@@ -6194,8 +6194,8 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
     @abc.abstractmethod
     async def edit_command_response(
         self,
+        application: snowflakes.SnowflakeishOr[guilds.PartialApplication],
         token: str,
-        # TODO: more concise type
         content: undefined.UndefinedNoneOr[typing.Any] = undefined.UNDEFINED,
         *,
         embed: undefined.UndefinedNoneOr[embeds_.Embed] = undefined.UNDEFINED,
@@ -6315,7 +6315,9 @@ class RESTClient(traits.NetworkSettingsAware, abc.ABC):
         """  # noqa: E501 - Line too long
 
     @abc.abstractmethod
-    async def delete_command_response(self, token: str, /) -> None:
+    async def delete_command_response(
+        self, application: snowflakes.SnowflakeishOr[guilds.PartialApplication], token: str, /
+    ) -> None:
         """Delete the initial response of an interaction.
 
         Parameters
