@@ -3023,6 +3023,7 @@ class RESTClientImpl(rest_api.RESTClient):
         response_type: interactions.ResponseType,
         content: undefined.UndefinedOr[typing.Any] = undefined.UNDEFINED,
         *,
+        flags: typing.Union[int, messages_.MessageFlag, undefined.UndefinedType] = undefined.UNDEFINED,
         tts: undefined.UndefinedOr[bool] = undefined.UNDEFINED,
         embed: undefined.UndefinedOr[embeds_.Embed] = undefined.UNDEFINED,
         embeds: undefined.UndefinedOr[typing.Sequence[embeds_.Embed]] = undefined.UNDEFINED,
@@ -3055,6 +3056,7 @@ class RESTClientImpl(rest_api.RESTClient):
 
         data = data_binding.JSONObjectBuilder()
         data.put("content", content)
+        data.put("flags", flags)
         data.put("tts", tts)
         data.put(
             "allowed_mentions",
