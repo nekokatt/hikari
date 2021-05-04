@@ -400,7 +400,7 @@ class Member(users.User):
         """
         return f"<@!{self.id}>" if self.nickname is not None else self.user.mention
 
-    @property
+    @property  # TODO: fix this
     def presence(self) -> typing.Optional[presences_.MemberPresence]:
         """Get the cached presence for this member, if known.
 
@@ -1195,7 +1195,7 @@ class Guild(PartialGuild, abc.ABC):
         return self.make_discovery_splash_url()
 
     @property
-    @abc.abstractmethod
+    @abc.abstractmethod  # TODO: fix this
     def emojis(self) -> typing.Mapping[snowflakes.Snowflake, emojis_.KnownCustomEmoji]:
         """Return the emojis in this guild.
 

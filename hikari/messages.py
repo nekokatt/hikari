@@ -315,6 +315,7 @@ class Mentions:
     everyone: undefined.UndefinedOr[bool] = attr.ib()
     """Whether the message notifies using `@everyone` or `@here`."""
 
+    # TODO: can we just type this as returning AbstractSet instead of casting to list?
     @property
     def channels_ids(self) -> undefined.UndefinedOr[typing.Sequence[snowflakes.Snowflake]]:
         if self.channels is undefined.UNDEFINED:
@@ -322,6 +323,7 @@ class Mentions:
 
         return list(self.channels.keys())
 
+    # TODO: can we just type this as returning AbstractSet instead of casting to list?
     @property
     def user_ids(self) -> undefined.UndefinedOr[typing.Sequence[snowflakes.Snowflake]]:
         if self.users is undefined.UNDEFINED:
@@ -329,8 +331,7 @@ class Mentions:
 
         return list(self.users.keys())
 
-    @property
-    def members(self) -> undefined.UndefinedOr[typing.Mapping[snowflakes.Snowflake, guilds.Member]]:
+    def get_members(self) -> undefined.UndefinedOr[typing.Mapping[snowflakes.Snowflake, guilds.Member]]:
         """Discover any cached members notified by this message.
 
         If this message was sent in a DM, this will always be empty.
@@ -364,8 +365,7 @@ class Mentions:
 
         return {}
 
-    @property
-    def roles(self) -> typing.Mapping[snowflakes.Snowflake, guilds.Role]:
+    def get_roles(self) -> undefined.UndefinedOr[typing.Mapping[snowflakes.Snowflake, guilds.Role]]:
         """Attempt to look up the roles that are notified by this message.
 
         If this message was sent in a DM, this will always be empty.
@@ -387,10 +387,13 @@ class Mentions:
             in `notifies_role_ids` may not be present here. This is a limitation
             of Discord, again.
         """
+        if self.role_ids is undefined.UNDEFINED:
+            return undefined.UNDEFINED
+
         if isinstance(self._message.app, traits.CacheAware) and self._message.guild_id is not None:
             app = self._message.app
             return self._map_cache_maybe_discover(
-                self.roles,
+                self.role_ids,
                 app.cache.get_role,
             )
 

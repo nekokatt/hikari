@@ -75,9 +75,6 @@ class VoiceStateUpdateEvent(VoiceEvent):
     to connect to the voice gateway to stream audio or video content.
     """
 
-    app: traits.RESTAware = attr.ib(metadata={attr_extensions.SKIP_DEEP_COPY: True})
-    # <<inherited docstring from Event>>.
-
     shard: gateway_shard.GatewayShard = attr.ib(metadata={attr_extensions.SKIP_DEEP_COPY: True})
     # <<inherited docstring>>.
 
@@ -95,6 +92,11 @@ class VoiceStateUpdateEvent(VoiceEvent):
     hikari.voices.VoiceState
         The voice state that was updated.
     """
+
+    @property
+    def app(self) -> traits.RESTAware:
+        # <<inherited docstring from Event>>.
+        return self.state.app
 
     @property
     def guild_id(self) -> snowflakes.Snowflake:

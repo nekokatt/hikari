@@ -216,8 +216,7 @@ class ChannelFollow:
         """
         return await self.app.rest.fetch_webhook(self.webhook_id)
 
-    @property
-    def channel(self) -> typing.Union[GuildNewsChannel, GuildTextChannel, None]:
+    def get_channel(self) -> typing.Union[GuildNewsChannel, GuildTextChannel, None]:
         """Get the channel being followed from the cache.
 
         !!! warning
