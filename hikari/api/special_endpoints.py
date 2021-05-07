@@ -23,7 +23,14 @@
 """Special additional endpoints used by the REST API."""
 from __future__ import annotations
 
-__all__: typing.List[str] = ["TypingIndicator", "GuildBuilder"]
+__all__: typing.List[str] = [
+    "CommandBuilder",
+    "TypingIndicator",
+    "GuildBuilder",
+    "CommandResponseBuilder",
+    "CommandResponseTypes",
+    "InteractionResponseBuilder",
+]
 
 import abc
 import typing
@@ -35,11 +42,18 @@ if typing.TYPE_CHECKING:
 
     from hikari import channels
     from hikari import colors
+    from hikari import embeds as embeds_
     from hikari import files
     from hikari import guilds
+    from hikari import messages
     from hikari import permissions as permissions_
     from hikari import snowflakes
+    from hikari import users
     from hikari import voices
+    from hikari.api import entity_factory as entity_factory_
+    from hikari.interactions import bases
+    from hikari.interactions import commands
+    from hikari.internal import data_binding
     from hikari.internal import time
 
 
@@ -462,3 +476,299 @@ class GuildBuilder(abc.ABC):
             When the guild is created, this will be replaced with a different
             ID.
         """  # noqa: E501 - Line too long
+
+
+class InteractionResponseBuilder(abc.ABC):
+    """Base class for all interaction response builders used in the interaction server."""
+
+    @property
+    @abc.abstractmethod
+    def type(self) -> bases.ResponseType:
+        """Return the type of this response.
+
+        Returns
+        -------
+        hikari.interactions.bases.ResponseType
+            The type of response this is.
+        """
+
+    @abc.abstractmethod
+    def build(self, entity_factory: entity_factory_.EntityFactory, /) -> data_binding.JSONObject:
+        """Build a JSON object from this builder.
+
+        Parameters
+        ----------
+        entity_factory : hikari.api.entity_factory.EntityFactory
+            The entity factory to use to serialize entities within this builder.
+
+        Returns
+        -------
+        hikari.internal.data_binding.JSONObject
+            The built json object representation of this builder.
+        """
+
+
+CommandResponseTypes = typing.Union[
+    "typing.Literal[bases.ResponseType.SOURCED_RESPONSE]",
+    "typing.Literal[bases.ResponseType.DEFERRED_SOURCED_RESPONSE]",
+]
+"""Type hints of the valid response types for a command interaction."""
+
+
+CommandResponseBuilderT = typing.TypeVar("CommandResponseBuilderT", bound="CommandResponseBuilder")
+
+
+class CommandResponseBuilder(InteractionResponseBuilder, abc.ABC):
+    """Interface of a interaction command response builder used within REST servers.
+
+    This can be returned by the listener registered to
+    `hikari.api.interaction_server.InteractionServer` as a response to the interaction
+    create.
+    """
+
+    __slots__: typing.Sequence[str] = ()
+
+    @property
+    @abc.abstractmethod
+    def type(self) -> CommandResponseTypes:
+        """Type of this response.
+
+        Returns
+        -------
+        hikari.api.special_endpoints.CommandResponseTypes
+            The type of response this is.
+        """
+
+    @property
+    @abc.abstractmethod
+    def embeds(self) -> typing.Sequence[embeds_.Embed]:
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def content(self) -> undefined.UndefinedOr[str]:
+        """Response's message content.
+
+        Returns
+        -------
+        hikari.undefined.UndefinedOr[builtins.str]
+            The response's message content, if set.
+        """
+
+    @content.setter
+    def content(self, content: undefined.UndefinedOr[str], /) -> None:
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def flags(self) -> typing.Union[undefined.UndefinedType, int, messages.MessageFlag]:
+        """Message flags this response should have.
+
+        !!! note
+            As of writing the only message flag which can be set here is
+            `hikari.messages.MessageFlag.EPHEMERAL`.
+
+        Returns
+        -------
+        typing.Union[hikari.undefined.UndefinedType, builtins.int, hikari.messages.MessageFlag]
+            The message flags this response should have if set else
+            `hikari.undefined.UNDEFINED`.
+        """
+
+    @flags.setter
+    def flags(self, flags: typing.Union[undefined.UndefinedType, int, messages.MessageFlag], /) -> None:
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def is_tts(self) -> undefined.UndefinedOr[bool]:
+        """Whether this response's content should be treated as text-to-speech.
+
+        Returns
+        -------
+        builtins.bool
+            Whether this response's content should be treated as text-to-speech.
+            If left as `hikari.undefined.UNDEFINED` then this will be disabled.
+        """
+
+    @is_tts.setter
+    def is_tts(self, tts: undefined.UndefinedOr[bool], /) -> None:
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def mentions_everyone(self) -> undefined.UndefinedOr[bool]:
+        """Whether @everyone and @here mentions should be enabled for this response.
+
+        Returns
+        -------
+        hikari.undefined.UndefinedOr[builtins.bool]
+            Whether @everyone mentions should be enabled for this response.
+            If left as `hikari.undefined.UNDEFINED` then they will be disabled.
+        """
+
+    @mentions_everyone.setter
+    def mentions_everyone(self, mentions: undefined.UndefinedOr[bool] = undefined.UNDEFINED, /) -> None:
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def user_mentions(
+        self,
+    ) -> undefined.UndefinedOr[typing.Union[snowflakes.SnowflakeishSequence[users.PartialUser], bool]]:
+        """Whether and what user mentions should be enabled for this response.
+
+        Returns
+        -------
+        hikari.undefined.UndefinedOr[typing.Union[hikari.snowflakes.SnowflakeishSequence[hikari.users.PartialUser], builtins.bool]]
+            Either a sequence of object/IDs of the users mentions should be enabled for,
+            `builtins.False` or `hikari.undefined.UNDEFINED` to disallow any user
+            mentions or `True` to allow all user mentions.
+        """  # noqa: E501 - Line too long
+
+    @user_mentions.setter
+    def user_mentions(
+        self,
+        mentions: undefined.UndefinedOr[
+            typing.Union[snowflakes.SnowflakeishSequence[users.PartialUser], bool]
+        ] = undefined.UNDEFINED,
+        /,
+    ) -> None:
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def role_mentions(
+        self,
+    ) -> undefined.UndefinedOr[typing.Union[snowflakes.SnowflakeishSequence[guilds.PartialRole], bool]]:
+        """Whether and what role mentions should be enabled for this response.
+
+        Returns
+        -------
+        hikari.undefined.UndefinedOr[typing.Union[hikari.snowflakes.SnowflakeishSequence[hikari.users.PartialUser], builtins.bool]]
+            Either a sequence of object/IDs of the roles mentions should be enabled for,
+            `builtins.False` or `hikari.undefined.UNDEFINED` to disallow any role
+            mentions or `True` to allow all role mentions.
+        """  # noqa: E501 - Line too long
+
+    @role_mentions.setter
+    def role_mentions(
+        self,
+        mentions: undefined.UndefinedOr[
+            typing.Union[snowflakes.SnowflakeishSequence[guilds.PartialRole], bool]
+        ] = undefined.UNDEFINED,
+        /,
+    ) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def add_embed(self: CommandResponseBuilderT, embed: embeds_.Embed, /) -> CommandResponseBuilderT:
+        """Add an embed to this response.
+
+        Parameters
+        ----------
+        embed : hikari.embeds.Embed
+            Object of the embed to add to this response.
+
+        Returns
+        -------
+        CommandResponseBuilderT
+            Object of this builder.
+        """
+
+
+CommandBuilderT = typing.TypeVar("CommandBuilderT", bound="CommandBuilder")
+
+
+class CommandBuilder(abc.ABC):
+    """Interface of a command builder used when bulk creating commands over REST."""
+
+    __slots__: typing.Sequence[str] = ()
+
+    @property
+    @abc.abstractmethod
+    def name(self) -> str:
+        r"""Name to set for this command.
+
+        !!! warning
+            This should be inclusively between 1-32 characters in length and
+            should match the regex `^[\w-]{1,32}$`.
+
+        Returns
+        -------
+        builtins.str
+            The name to set for this command.
+        """
+
+    @property
+    @abc.abstractmethod
+    def description(self) -> str:
+        """Return the description to set for this command.
+
+        !!! warning
+            This should be inclusively between 1-100 characters in length.
+
+        Returns
+        -------
+        builtins.str
+            The description to set for this command.
+        """
+
+    @property
+    @abc.abstractmethod
+    def options(self) -> typing.Sequence[commands.CommandOption]:
+        """Sequence of up to 25 of the options set for this command.
+
+        Returns
+        -------
+        typing.Sequence[hikari.interactions.commands.CommandOption]
+            A sequence of up to 25 of the options set for this command.
+        """
+
+    @property
+    @abc.abstractmethod
+    def id(self) -> undefined.UndefinedOr[snowflakes.Snowflake]:
+        """ID of this command.
+
+        Returns
+        -------
+        hikari.undefined.UndefinedOr[hikari.snowflakes.Snowflake]
+            The ID of this command if set.
+        """
+
+    @id.setter
+    def id(self, id_: undefined.UndefinedOr[snowflakes.Snowflake], /) -> None:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def add_option(self: CommandBuilderT, option: commands.CommandOption) -> CommandBuilderT:
+        """Add an option to this command.
+
+        !!! note
+            A command can have up to 25 options.
+
+        Parameters
+        ----------
+        option : hikari.interactions.commands.CommandOption
+            The option to add to this command.
+
+        Returns
+        -------
+        CommandBuilderT
+            Object of this command builder.
+        """
+
+    @abc.abstractmethod
+    def build(self, entity_factory: entity_factory_.EntityFactory, /) -> data_binding.JSONObject:
+        """Build a JSON object from this builder.
+
+        Parameters
+        ----------
+        entity_factory : hikari.api.entity_factory.EntityFactory
+            The entity factory to use to serialize entities within this builder.
+
+        Returns
+        -------
+        hikari.internal.data_binding.JSONObject
+            The built json object representation of this builder.
+        """

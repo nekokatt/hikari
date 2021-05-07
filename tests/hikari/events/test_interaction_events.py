@@ -20,29 +20,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from pipelines import config
-from pipelines import nox
+import mock
 
-STUBGEN_GENERATE = ["hikari/__init__.py", "hikari/events/__init__.py", "hikari/interactions/__init__.py"]
-
-
-@nox.session(reuse_venv=True)
-def mypy(session: nox.Session) -> None:
-    """Perform static type analysis on Python source code."""
-    session.install("-r", "requirements.txt", "-r", "dev-requirements.txt")
-
-    _generate_stubs(session)
-
-    session.run("mypy", "-p", config.MAIN_PACKAGE, "--config", config.MYPY_INI)
-    session.run("mypy", "-p", config.EXAMPLE_SCRIPTS, "--config", config.MYPY_INI)
+from hikari.events import interaction_events
+from tests.hikari import hikari_test_helpers
 
 
-@nox.session(reuse_venv=True)
-def generate_stubs(session: nox.Session) -> None:
-    """Generate the stubs for the package."""
-    session.install("-r", "requirements.txt", "-r", "dev-requirements.txt")
-    _generate_stubs(session)
+class TestCommandEvent:
+    def test_app_property(self):
+        mock_event = hikari_test_helpers.mock_class_namespace(interaction_events.CommandEvent, command=mock.Mock())()
+
+        assert mock_event.app is mock_event.command.app
 
 
-def _generate_stubs(session: nox.Session) -> None:
-    session.run("stubgen", *STUBGEN_GENERATE, "-o", ".", "--include-private", "--no-import")
+class TestInteractionCreateEvent:
+    def test_app_property(self):
+        mock_event = interaction_events.InteractionCreateEvent(shard=object(), interaction=mock.Mock())
+
+        assert mock_event.app is mock_event.interaction.app
