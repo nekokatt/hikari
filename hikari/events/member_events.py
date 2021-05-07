@@ -54,6 +54,11 @@ class MemberEvent(shard_events.ShardEvent, abc.ABC):
     """Event base for any events that concern guild members."""
 
     @property
+    def app(self) -> traits.RESTAware:
+        # <<inherited docstring from Event>>.
+        return self.user.app
+
+    @property
     @abc.abstractmethod
     def guild_id(self) -> snowflakes.Snowflake:
         """ID of the guild that this event relates to.
@@ -86,8 +91,7 @@ class MemberEvent(shard_events.ShardEvent, abc.ABC):
         """
         return self.user.id
 
-    @property
-    def guild(self) -> typing.Optional[guilds.GatewayGuild]:
+    def get_guild(self) -> typing.Optional[guilds.GatewayGuild]:
         """Get the cached view of the guild this member event occurred in.
 
         If the guild itself is not cached, this will return `builtins.None`.
@@ -109,9 +113,6 @@ class MemberEvent(shard_events.ShardEvent, abc.ABC):
 @base_events.requires_intents(intents.Intents.GUILD_MEMBERS)
 class MemberCreateEvent(MemberEvent):
     """Event that is fired when a member joins a guild."""
-
-    app: traits.RESTAware = attr.ib(metadata={attr_extensions.SKIP_DEEP_COPY: True})
-    # <<inherited docstring from Event>>.
 
     shard: gateway_shard.GatewayShard = attr.ib(metadata={attr_extensions.SKIP_DEEP_COPY: True})
     # <<inherited docstring from ShardEvent>>.
@@ -144,9 +145,6 @@ class MemberUpdateEvent(MemberEvent):
 
     This may occur if roles are amended, or if the nickname is changed.
     """
-
-    app: traits.RESTAware = attr.ib(metadata={attr_extensions.SKIP_DEEP_COPY: True})
-    # <<inherited docstring from Event>>.
 
     shard: gateway_shard.GatewayShard = attr.ib(metadata={attr_extensions.SKIP_DEEP_COPY: True})
     # <<inherited docstring from ShardEvent>>.
@@ -182,9 +180,6 @@ class MemberUpdateEvent(MemberEvent):
 @base_events.requires_intents(intents.Intents.GUILD_MEMBERS)
 class MemberDeleteEvent(MemberEvent):
     """Event fired when a member is kicked from or leaves a guild."""
-
-    app: traits.RESTAware = attr.ib(metadata={attr_extensions.SKIP_DEEP_COPY: True})
-    # <<inherited docstring from Event>>.
 
     shard: gateway_shard.GatewayShard = attr.ib(metadata={attr_extensions.SKIP_DEEP_COPY: True})
     # <<inherited docstring from ShardEvent>>.

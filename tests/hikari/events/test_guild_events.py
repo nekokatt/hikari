@@ -30,7 +30,7 @@ from hikari.events import guild_events
 from tests.hikari import hikari_test_helpers
 
 
-class GuildEvent:
+class TestGuildEvent:
     @pytest.fixture()
     def event(self):
         cls = hikari_test_helpers.mock_class_namespace(
@@ -38,20 +38,25 @@ class GuildEvent:
         )
         return cls()
 
-    def test_guild_when_available(self, event):
-        result = event.guild
+    def test_get_guild_when_available(self, event):
+        result = event.get_guild()
 
         assert result is event.app.cache.get_available_guild.return_value
         event.app.cache.get_available_guild.assert_called_once_with(534123123)
         event.app.cache.get_unavailable_guild.assert_not_called()
 
-    def test_guild_when_unavailable(self, event):
+    def test_get_guild_when_unavailable(self, event):
         event.app.cache.get_available_guild.return_value = None
-        result = event.guild
+        result = event.get_guild()
 
         assert result is event.app.cache.get_unavailable_guild.return_value
         event.app.cache.get_unavailable_guild.assert_called_once_with(534123123)
         event.app.cache.get_available_guild.assert_called_once_with(534123123)
+
+    def test_get_guild_cacheless(self, event):
+        event = hikari_test_helpers.mock_class_namespace(guild_events.GuildEvent, app=object())()
+
+        assert event.get_guild() is None
 
     @pytest.mark.asyncio
     async def test_fetch_guild(self, event):
@@ -74,7 +79,6 @@ class TestGuildAvailableEvent:
     @pytest.fixture()
     def event(self):
         return guild_events.GuildAvailableEvent(
-            app=None,
             shard=object(),
             guild=mock.Mock(guilds.Guild),
             emojis={},
@@ -85,22 +89,41 @@ class TestGuildAvailableEvent:
             voice_states={},
         )
 
+    def test_app_property(self, event):
+        assert event.app is event.guild.app
+
     def test_guild_id_property(self, event):
         event.guild.id = 123
         assert event.guild_id == 123
+
+    def test_get_guild_when_super_returns_a_guild(self, event):
+        with mock.patch.object(guild_events.GuildEvent, "get_guild") as patched_super:
+            result = event.get_guild()
+
+            assert result is patched_super.return_value
+            patched_super.assert_called_once()
+
+    def test_get_guild_when_super_returns_none(self, event):
+        with mock.patch.object(guild_events.GuildEvent, "get_guild", return_value=None) as patched_super:
+            result = event.get_guild()
+
+            assert result is event.guild
+            patched_super.assert_called_once()
 
 
 class TestGuildUpdateEvent:
     @pytest.fixture()
     def event(self):
         return guild_events.GuildUpdateEvent(
-            app=None,
             shard=object(),
             guild=mock.Mock(guilds.Guild),
             old_guild=mock.Mock(guilds.Guild),
             emojis={},
             roles={},
         )
+
+    def test_app_property(self, event):
+        assert event.app is event.guild.app
 
     def test_guild_id_property(self, event):
         event.guild.id = 123
@@ -110,17 +133,39 @@ class TestGuildUpdateEvent:
         event.old_guild.id = 123
         assert event.old_guild.id == 123
 
+    def test_get_guild_when_super_returns(self, event):
+        with mock.patch.object(guild_events.GuildEvent, "get_guild") as patched_super:
+            assert event.get_guild() is patched_super.return_value
+
+    def test_get_guild_when_super_returns_none(self, event):
+        with mock.patch.object(guild_events.GuildEvent, "get_guild", return_value=None) as patched_super:
+            result = event.get_guild()
+
+            assert result is event.guild
+            patched_super.assert_called_once_with()
+
+
+class TestBanEvent:
+    @pytest.fixture()
+    def event(self):
+        return hikari_test_helpers.mock_class_namespace(guild_events.BanEvent)()
+
+    def test_app_property(self, event):
+        assert event.app is event.user.app
+
 
 class TestPresenceUpdateEvent:
     @pytest.fixture()
     def event(self):
         return guild_events.PresenceUpdateEvent(
-            app=None,
             shard=object(),
             presence=mock.Mock(presences.MemberPresence),
             old_presence=mock.Mock(presences.MemberPresence),
             user=mock.Mock(),
         )
+
+    def test_app_property(self, event):
+        assert event.app is event.presence.app
 
     def test_user_id_property(self, event):
         event.presence.user_id = 123

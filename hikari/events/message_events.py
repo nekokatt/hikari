@@ -93,6 +93,11 @@ class MessageCreateEvent(MessageEvent, abc.ABC):
     """Event that is fired when a message is created."""
 
     @property
+    def app(self) -> traits.RESTAware:
+        # <<inherited docstring from Event>>.
+        return self.message.app
+
+    @property
     def author(self) -> users.User:
         """User that sent the message.
 
@@ -210,9 +215,6 @@ class GuildMessageCreateEvent(MessageCreateEvent):
     This contains the full message in the internal `message` attribute.
     """
 
-    app: traits.RESTAware = attr.ib(metadata={attr_extensions.SKIP_DEEP_COPY: True})
-    # <<inherited docstring from Event>>
-
     message: messages.Message = attr.ib()
     # <<inherited docstring from MessageCreateEvent>>
 
@@ -233,7 +235,20 @@ class GuildMessageCreateEvent(MessageCreateEvent):
         return member
 
     @property
-    def channel(self) -> typing.Union[None, channels.GuildTextChannel, channels.GuildNewsChannel]:
+    def guild_id(self) -> snowflakes.Snowflake:
+        """ID of the guild that this event occurred in.
+
+        Returns
+        -------
+        hikari.snowflakes.Snowflake
+            The ID of the guild that this event occurred in.
+        """
+        guild_id = self.message.guild_id
+        # Always present on guild events
+        assert isinstance(guild_id, snowflakes.Snowflake), "no guild_id attribute set"
+        return guild_id
+
+    def get_channel(self) -> typing.Union[None, channels.GuildTextChannel, channels.GuildNewsChannel]:
         """Channel that the message was sent in, if known.
 
         Returns
@@ -251,8 +266,7 @@ class GuildMessageCreateEvent(MessageCreateEvent):
         ), f"Cached channel ID is not a GuildNewsChannel or a GuildTextChannel, but a {type(channel).__name__}!"
         return channel
 
-    @property
-    def guild(self) -> typing.Optional[guilds.GatewayGuild]:
+    def get_guild(self) -> typing.Optional[guilds.GatewayGuild]:
         """Get the cached guild that this event occurred in, if known.
 
         !!! note
@@ -270,20 +284,6 @@ class GuildMessageCreateEvent(MessageCreateEvent):
 
         return self.app.cache.get_guild(self.guild_id)
 
-    @property
-    def guild_id(self) -> snowflakes.Snowflake:
-        """ID of the guild that this event occurred in.
-
-        Returns
-        -------
-        hikari.snowflakes.Snowflake
-            The ID of the guild that this event occurred in.
-        """
-        guild_id = self.message.guild_id
-        # Always present on guild events
-        assert isinstance(guild_id, snowflakes.Snowflake), "no guild_id attribute set"
-        return guild_id
-
 
 @attr_extensions.with_copy
 @attr.s(kw_only=True, slots=True, weakref_slot=False)
@@ -293,9 +293,6 @@ class DMMessageCreateEvent(MessageCreateEvent):
 
     This contains the full message in the internal `message` attribute.
     """
-
-    app: traits.RESTAware = attr.ib(metadata={attr_extensions.SKIP_DEEP_COPY: True})
-    # <<inherited docstring from Event>>
 
     message: messages.Message = attr.ib()
     # <<inherited docstring from MessageCreateEvent>>
@@ -313,6 +310,11 @@ class MessageUpdateEvent(MessageEvent, abc.ABC):
         Less information will be available here than in the creation event
         due to Discord limitations.
     """
+
+    @property
+    def app(self) -> traits.RESTAware:
+        # <<inherited docstring from Event>>.
+        return self.message.app
 
     @property
     def author(self) -> typing.Optional[users.User]:
@@ -459,9 +461,6 @@ class GuildMessageUpdateEvent(MessageUpdateEvent):
         due to Discord limitations.
     """
 
-    app: traits.RESTAware = attr.ib(metadata={attr_extensions.SKIP_DEEP_COPY: True})
-    # <<inherited docstring from Event>>
-
     old_message: typing.Optional[messages.PartialMessage] = attr.ib()
     """The old message object.
 
@@ -474,7 +473,7 @@ class GuildMessageUpdateEvent(MessageUpdateEvent):
     shard: shard_.GatewayShard = attr.ib(metadata={attr_extensions.SKIP_DEEP_COPY: True})
     # <<inherited docstring from ShardEvent>>
 
-    @property
+    @property  # TODO: why this is so implicit? remove?
     def author(self) -> typing.Optional[users.User]:
         """Member or user that sent the message.
 
@@ -504,7 +503,20 @@ class GuildMessageUpdateEvent(MessageUpdateEvent):
         return author
 
     @property
-    def channel(self) -> typing.Union[None, channels.GuildTextChannel, channels.GuildNewsChannel]:
+    def guild_id(self) -> snowflakes.Snowflake:
+        """ID of the guild that this event occurred in.
+
+        Returns
+        -------
+        hikari.snowflakes.Snowflake
+            The ID of the guild that this event occurred in.
+        """
+        guild_id = self.message.guild_id
+        # Always present on guild events
+        assert isinstance(guild_id, snowflakes.Snowflake), f"expected guild_id, got {guild_id}"
+        return guild_id
+
+    def get_channel(self) -> typing.Union[None, channels.GuildTextChannel, channels.GuildNewsChannel]:
         """Channel that the message was sent in, if known.
 
         Returns
@@ -522,8 +534,7 @@ class GuildMessageUpdateEvent(MessageUpdateEvent):
         ), f"Cached channel ID is not a GuildNewsChannel or a GuildTextChannel, but a {type(channel).__name__}!"
         return channel
 
-    @property
-    def guild(self) -> typing.Optional[guilds.GatewayGuild]:
+    def get_guild(self) -> typing.Optional[guilds.GatewayGuild]:
         """Get the cached guild that this event occurred in, if known.
 
         !!! note
@@ -541,20 +552,6 @@ class GuildMessageUpdateEvent(MessageUpdateEvent):
 
         return self.app.cache.get_guild(self.guild_id)
 
-    @property
-    def guild_id(self) -> snowflakes.Snowflake:
-        """ID of the guild that this event occurred in.
-
-        Returns
-        -------
-        hikari.snowflakes.Snowflake
-            The ID of the guild that this event occurred in.
-        """
-        guild_id = self.message.guild_id
-        # Always present on guild events
-        assert isinstance(guild_id, snowflakes.Snowflake), f"expected guild_id, got {guild_id}"
-        return guild_id
-
 
 @attr_extensions.with_copy
 @attr.s(kw_only=True, slots=True, weakref_slot=False)
@@ -566,9 +563,6 @@ class DMMessageUpdateEvent(MessageUpdateEvent):
         Less information will be available here than in the creation event
         due to Discord limitations.
     """
-
-    app: traits.RESTAware = attr.ib(metadata={attr_extensions.SKIP_DEEP_COPY: True})
-    # <<inherited docstring from Event>>
 
     old_message: typing.Optional[messages.PartialMessage] = attr.ib()
     """The old message object.
@@ -677,8 +671,7 @@ class GuildMessageDeleteEvent(MessageDeleteEvent):
     shard: shard_.GatewayShard = attr.ib(metadata={attr_extensions.SKIP_DEEP_COPY: True})
     # <<inherited docstring from ShardEvent>>
 
-    @property
-    def channel(self) -> typing.Union[None, channels.GuildTextChannel, channels.GuildNewsChannel]:
+    def get_channel(self) -> typing.Union[None, channels.GuildTextChannel, channels.GuildNewsChannel]:
         """Get the cached channel the messages were sent in, if known.
 
         Returns
@@ -700,8 +693,7 @@ class GuildMessageDeleteEvent(MessageDeleteEvent):
         ), f"Cached channel ID is not a GuildNewsChannel or a GuildTextChannel, but a {type(channel).__name__}!"
         return channel
 
-    @property
-    def guild(self) -> typing.Optional[guilds.GatewayGuild]:
+    def get_guild(self) -> typing.Optional[guilds.GatewayGuild]:
         """Get the cached guild this event corresponds to, if known.
 
         !!! note

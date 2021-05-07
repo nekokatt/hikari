@@ -106,9 +106,6 @@ class ShardDisconnectedEvent(ShardStateEvent):
 class ShardReadyEvent(ShardStateEvent):
     """Event fired when a shard declares it is ready."""
 
-    app: traits.RESTAware = attr.ib(metadata={attr_extensions.SKIP_DEEP_COPY: True})
-    # <<inherited docstring from Event>>.
-
     shard: gateway_shard.GatewayShard = attr.ib(metadata={attr_extensions.SKIP_DEEP_COPY: True})
     # <<docstring inherited from ShardEvent>>.
 
@@ -168,6 +165,11 @@ class ShardReadyEvent(ShardStateEvent):
     hikari.applications.ApplicationFlags
         The current application's flags.
     """
+
+    @property
+    def app(self) -> traits.RESTAware:
+        # <<inherited docstring from Event>>.
+        return self.my_user.app
 
 
 @attr_extensions.with_copy
